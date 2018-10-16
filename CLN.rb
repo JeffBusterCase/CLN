@@ -14,6 +14,9 @@ class ConnectionLinkNet
     
     def create(*name)
         for nome in name
+            # Check existence
+            next if @mem_connection.include? nome.to_sym
+        
             @mem_connection[:___n___] += 1
             @mem_connection[nome.to_sym] = {___cod___: @mem_connection[:___n___], connect: []}
         end
@@ -24,7 +27,7 @@ class ConnectionLinkNet
             file.puts YAML.dump(@mem_connection)
         }
     end
-    def dump!( filename=@name, password=@name+"_____________", iv=@name+"_______________")
+    def dump!( filename=@name, password=@name+"__________________", iv=@name+"__________________")
         require 'zlib'
         require 'openssl'
         save = YAML.dump(@mem_connection)
@@ -37,6 +40,9 @@ class ConnectionLinkNet
         File.open(filename, 'w'){|file|
             file.puts save
         }
+    end
+    def load(filename=@name)
+        @mem_connection = YAML.load(filename)
     end
     def load!(filename=@name, password=@name+"_____________", iv=@name+"_______________")
         require 'zlib'
@@ -74,8 +80,12 @@ class ConnectionLinkNet
         return list_
     end
     def connect(block, to_block)
-        @mem_connection[block.to_sym][:connect] << @mem_connection[to_block.to_sym][:___cod___]
-        @mem_connection[to_block.to_sym][:connect] << @mem_connection[block.to_sym][:___cod___]
+        unless @mem_connection[block.to_sym][:connect].include? @mem_connection[to_block.to_sym][:___cod___]
+            @mem_connection[block.to_sym][:connect] << @mem_connection[to_block.to_sym][:___cod___]
+        end
+        unless @mem_connection[to_block.to_sym][:connect].include? @mem_connection[block.to_sym][:___cod___]
+            @mem_connection[to_block.to_sym][:connect] << @mem_connection[block.to_sym][:___cod___]
+        end
     end
     def update(block , to_block, new_value)
         older_blocks = find(block, to_block)
